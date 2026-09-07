@@ -43,10 +43,13 @@ facturacion/
     │   ├── Card.jsx             # Tarjeta contenedora
     │   └── Input.jsx            # Entrada de texto con etiquetas y validación
     │
+    ├── dashboard/               # Módulo analítico y reportería
+    │   └── Dashboard.jsx        # KPIs, Recharts, atípicos (>1.5σ), proyecciones y exportación CSV
+    │
     ├── invoices/                # Vistas y lógica de facturas
     │   ├── Invoice.jsx          # Detalle de factura con QR e impresión PDF
-    │   ├── InvoiceForm.jsx      # Formulario dinámico de emisión
-    │   └── InvoiceList.jsx      # Listado, métricas, filtros y acciones
+    │   ├── InvoiceForm.jsx      # Formulario dinámico de emisión con dueDate
+    │   └── InvoiceList.jsx      # Listado, métricas, alertas de vencimiento y cobro
     │
     ├── services/                # Servicios de red
     │   └── invoiceService.js    # Conexión fetch con db.json y respaldo local
