@@ -36,7 +36,12 @@ export default function InvoiceForm({
 
   // Estado para información de factura
   const [numeroFactura, setNumeroFactura] = useState(suggestedInvoiceNumber);
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [fecha, setFecha] = useState(() => new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  });
   const [moneda, setMoneda] = useState('$');
   const [metodoPago, setMetodoPago] = useState('Transferencia / SINPE');
   const [condicionVenta, setCondicionVenta] = useState('Contado');
@@ -189,6 +194,7 @@ export default function InvoiceForm({
       id: numeroFactura.trim(),
       numeroFactura: numeroFactura.trim(),
       fecha,
+      dueDate,
       moneda,
       metodoPago,
       condicionVenta,
@@ -250,6 +256,13 @@ export default function InvoiceForm({
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
               error={errors.fecha}
+              required
+            />
+            <Input
+              label="Fecha de Vencimiento"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
               required
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>

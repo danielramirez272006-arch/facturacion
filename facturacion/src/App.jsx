@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import InvoiceList from './invoices/InvoiceList';
 import InvoiceForm from './invoices/InvoiceForm';
 import Invoice from './invoices/Invoice';
+import Dashboard from './dashboard/Dashboard';
 import Button from './components/Button';
 import {
   loadApplicationData,
@@ -178,6 +179,12 @@ function App() {
             📋 Facturas ({invoices.length})
           </Button>
           <Button
+            variant={currentView === 'dashboard' ? 'primary' : 'ghost'}
+            onClick={() => setCurrentView('dashboard')}
+          >
+            📊 Dashboard Admin
+          </Button>
+          <Button
             variant={currentView === 'form' ? 'primary' : 'outline'}
             onClick={handleGoToForm}
           >
@@ -216,6 +223,10 @@ function App() {
             onUpdateStatus={handleUpdateInvoiceStatus}
             onDelete={handleDeleteInvoice}
           />
+        )}
+
+        {currentView === 'dashboard' && (
+          <Dashboard invoices={invoices} onViewDetail={handleViewDetail} />
         )}
       </main>
     </div>
