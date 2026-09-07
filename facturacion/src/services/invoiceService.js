@@ -93,49 +93,44 @@ export async function loadApplicationData() {
  */
 export async function apiSaveInvoice(invoice, isOnline, existingClients = [], existingProducts = []) {
   if (isOnline) {
-    try {
-      // 1. Guardar la factura
-      const res = await fetch(`${API_BASE}/invoices`, {
+    // 1. Guardar la factura en el servidor
+    const res = await fetch(`${API_BASE}/invoices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(invoice),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error en el servidor al guardar la factura (Código: ${res.status})`);
+    }
+
+    const savedData = await res.json();
+
+    // 2. Si el cliente no existía previamente, guardarlo orgánicamente
+    if (invoice.cliente?.nombre && !existingClients.some((c) => c.identificacion === invoice.cliente.identificacion)) {
+      fetch(`${API_BASE}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invoice),
-      });
+        body: JSON.stringify({ id: `cli-${Date.now()}`, ...invoice.cliente }),
+      }).catch(() => {});
+    }
 
-      // 2. Si el cliente no existía previamente en la lista, guardarlo orgánicamente
-      if (invoice.cliente?.nombre && !existingClients.some((c) => c.identificacion === invoice.cliente.identificacion)) {
-        const newClient = {
-          id: `cli-${Date.now()}`,
-          ...invoice.cliente,
-        };
-        await fetch(`${API_BASE}/clients`, {
+    // 3. Si los ítems no existían en el catálogo, guardarlos orgánicamente
+    for (const item of invoice.items || []) {
+      if (item.descripcion && !existingProducts.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
+        fetch(`${API_BASE}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newClient),
-        }).catch(() => {});
-      }
-
-      // 3. Si los ítems no existían en el catálogo, guardarlos orgánicamente
-      for (const item of invoice.items || []) {
-        if (item.descripcion && !existingProducts.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
-          const newProduct = {
+          body: JSON.stringify({
             id: `prod-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             descripcion: item.descripcion,
             precio: item.precio,
-          };
-          await fetch(`${API_BASE}/products`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newProduct),
-          }).catch(() => {});
-        }
+          }),
+        }).catch(() => {});
       }
-
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch {
-      // Fallback a retorno directo
     }
+
+    return savedData;
   }
 
   return invoice;
@@ -151,7 +146,7 @@ export async function apiUpdateEmisor(emisorData, isOnline) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emisorData),
-      }).catch(() => {});
+      });
     } catch {
       // Silencioso
     }
@@ -163,16 +158,17 @@ export async function apiUpdateEmisor(emisorData, isOnline) {
  */
 export async function apiUpdateInvoiceStatus(id, newStatus, isOnline) {
   if (isOnline) {
-    try {
-      await fetch(`${API_BASE}/invoices/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: newStatus }),
-      });
-    } catch {
-      // Silencioso
+    const res = await fetch(`${API_BASE}/invoices/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estado: newStatus }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al actualizar estado en el servidor (Código: ${res.status})`);
     }
   }
+  return true;
 }
 
 /**
@@ -180,12 +176,13 @@ export async function apiUpdateInvoiceStatus(id, newStatus, isOnline) {
  */
 export async function apiDeleteInvoice(id, isOnline) {
   if (isOnline) {
-    try {
-      await fetch(`${API_BASE}/invoices/${id}`, {
-        method: 'DELETE',
-      });
-    } catch {
-      // Silencioso
+    const res = await fetch(`${API_BASE}/invoices/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al eliminar en el servidor (Código: ${res.status})`);
     }
   }
+  return true;
 }
