@@ -1,0 +1,11 @@
+{
+  "emisor": {
+    "nombre": "",
+    "identificacion": "",
+    "email": "",
+    "direccion": ""
+  },
+  "clients": [],
+  "products": [],
+  "invoices": []
+}
