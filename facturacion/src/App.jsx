@@ -61,56 +61,76 @@ function App() {
     setCurrentView('detail');
   };
 
-  // Guardar factura (conecta con API / db.json)
+  // Guardar factura: el estado de la UI solo se actualiza tras respuesta exitosa del servidor
   const handleSaveInvoice = async (newInvoice, saveEmisorAsDefault) => {
-    if (saveEmisorAsDefault && newInvoice.emisor) {
-      await apiUpdateEmisor(newInvoice.emisor, isBackendConnected);
-      setEmisor(newInvoice.emisor);
-    }
-
-    const saved = await apiSaveInvoice(newInvoice, isBackendConnected, clients, products);
-    const updated = [saved, ...invoices];
-    setInvoices(updated);
-    persistLocally(updated);
-
-    // Guardar cliente orgánicamente si es nuevo
-    if (newInvoice.cliente?.nombre && !clients.some((c) => c.identificacion === newInvoice.cliente.identificacion)) {
-      setClients((prev) => [...prev, { id: `cli-${Date.now()}`, ...newInvoice.cliente }]);
-    }
-
-    // Guardar productos orgánicamente si son nuevos
-    for (const item of newInvoice.items || []) {
-      if (item.descripcion && !products.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
-        setProducts((prev) => [...prev, { id: `prod-${Date.now()}-${Math.floor(Math.random() * 1000)}`, descripcion: item.descripcion, precio: item.precio }]);
+    try {
+      if (saveEmisorAsDefault && newInvoice.emisor) {
+        await apiUpdateEmisor(newInvoice.emisor, isBackendConnected);
+        setEmisor(newInvoice.emisor);
       }
-    }
 
-    setSelectedInvoice(saved);
-    setCurrentView('detail');
+      const saved = await apiSaveInvoice(newInvoice, isBackendConnected, clients, products);
+      const updated = [saved, ...invoices];
+
+      // Actualizar estado de React únicamente después de éxito confirmado
+      setInvoices(updated);
+      persistLocally(updated);
+
+      // Guardar cliente orgánicamente si es nuevo
+      if (newInvoice.cliente?.nombre && !clients.some((c) => c.identificacion === newInvoice.cliente.identificacion)) {
+        setClients((prev) => [...prev, { id: `cli-${Date.now()}`, ...newInvoice.cliente }]);
+      }
+
+      // Guardar productos orgánicamente si son nuevos
+      for (const item of newInvoice.items || []) {
+        if (item.descripcion && !products.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
+          setProducts((prev) => [...prev, { id: `prod-${Date.now()}-${Math.floor(Math.random() * 1000)}`, descripcion: item.descripcion, precio: item.precio }]);
+        }
+      }
+
+      setSelectedInvoice(saved);
+      setCurrentView('detail');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
-  // Eliminar factura (conecta con API / db.json)
+  // Eliminar factura: solo remueve de la UI si el servidor confirmó la eliminación
   const handleDeleteInvoice = async (invoiceId) => {
-    await apiDeleteInvoice(invoiceId, isBackendConnected);
-    const updated = invoices.filter((inv) => inv.id !== invoiceId);
-    setInvoices(updated);
-    persistLocally(updated);
-    if (selectedInvoice?.id === invoiceId) {
-      setSelectedInvoice(null);
-      setCurrentView('list');
+    try {
+      await apiDeleteInvoice(invoiceId, isBackendConnected);
+      const updated = invoices.filter((inv) => inv.id !== invoiceId);
+
+      // Actualizar estado de React únicamente después de éxito confirmado
+      setInvoices(updated);
+      persistLocally(updated);
+
+      if (selectedInvoice?.id === invoiceId) {
+        setSelectedInvoice(null);
+        setCurrentView('list');
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 
-  // Actualizar estado (conecta con API / db.json)
+  // Actualizar estado: solo refleja el cambio si el servidor respondió correctamente
   const handleUpdateInvoiceStatus = async (invoiceId, newStatus) => {
-    await apiUpdateInvoiceStatus(invoiceId, newStatus, isBackendConnected);
-    const updated = invoices.map((inv) =>
-      inv.id === invoiceId ? { ...inv, estado: newStatus } : inv
-    );
-    setInvoices(updated);
-    persistLocally(updated);
-    if (selectedInvoice?.id === invoiceId) {
-      setSelectedInvoice((prev) => (prev ? { ...prev, estado: newStatus } : null));
+    try {
+      await apiUpdateInvoiceStatus(invoiceId, newStatus, isBackendConnected);
+      const updated = invoices.map((inv) =>
+        inv.id === invoiceId ? { ...inv, estado: newStatus } : inv
+      );
+
+      // Actualizar estado de React únicamente después de éxito confirmado
+      setInvoices(updated);
+      persistLocally(updated);
+
+      if (selectedInvoice?.id === invoiceId) {
+        setSelectedInvoice((prev) => (prev ? { ...prev, estado: newStatus } : null));
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 

@@ -196,7 +196,7 @@ export default function InvoiceList({
 
                   return (
                     <tr
-                      key={invoice.id || invoice.numeroFactura}
+                      key={invoice.id}
                       style={{
                         borderBottom: '1px solid #f1f5f9',
                         transition: 'background-color 0.15s ease',
