@@ -1,20 +1,26 @@
 import defaultDb from '../../db.json';
 
-const API_BASE = 'http://localhost:3005';
+let activeApiBase = 'http://localhost:3005';
 
 /**
- * Verifica si el backend json-server está encendido y accesible
+ * Verifica si el backend json-server está encendido y accesible (en puerto 3001 o 3005)
  */
 export async function checkBackendConnection() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 800);
-    const res = await fetch(`${API_BASE}/invoices`, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    return res.ok;
-  } catch {
-    return false;
+  for (const url of ['http://localhost:3001', 'http://localhost:3005']) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 800);
+      const res = await fetch(`${url}/invoices`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        activeApiBase = url;
+        return true;
+      }
+    } catch {
+      // continuar
+    }
   }
+  return false;
 }
 
 /**
@@ -27,10 +33,10 @@ export async function loadApplicationData() {
   if (isOnline) {
     try {
       const [invoicesRes, clientsRes, productsRes, emisorRes] = await Promise.all([
-        fetch(`${API_BASE}/invoices`),
-        fetch(`${API_BASE}/clients`),
-        fetch(`${API_BASE}/products`),
-        fetch(`${API_BASE}/emisor`),
+        fetch(`${activeApiBase}/invoices`),
+        fetch(`${activeApiBase}/clients`),
+        fetch(`${activeApiBase}/products`),
+        fetch(`${activeApiBase}/emisor`),
       ]);
 
       const invoices = invoicesRes.ok ? await invoicesRes.json() : [];
@@ -94,7 +100,7 @@ export async function loadApplicationData() {
 export async function apiSaveInvoice(invoice, isOnline, existingClients = [], existingProducts = []) {
   if (isOnline) {
     // 1. Guardar la factura en el servidor
-    const res = await fetch(`${API_BASE}/invoices`, {
+    const res = await fetch(`${activeApiBase}/invoices`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(invoice),
@@ -108,7 +114,7 @@ export async function apiSaveInvoice(invoice, isOnline, existingClients = [], ex
 
     // 2. Si el cliente no existía previamente, guardarlo orgánicamente
     if (invoice.cliente?.nombre && !existingClients.some((c) => c.identificacion === invoice.cliente.identificacion)) {
-      fetch(`${API_BASE}/clients`, {
+      fetch(`${activeApiBase}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: `cli-${Date.now()}`, ...invoice.cliente }),
@@ -118,7 +124,7 @@ export async function apiSaveInvoice(invoice, isOnline, existingClients = [], ex
     // 3. Si los ítems no existían en el catálogo, guardarlos orgánicamente
     for (const item of invoice.items || []) {
       if (item.descripcion && !existingProducts.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
-        fetch(`${API_BASE}/products`, {
+        fetch(`${activeApiBase}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -141,7 +147,7 @@ export async function apiSaveInvoice(invoice, isOnline, existingClients = [], ex
  */
 export async function apiUpdateInvoice(invoice, isOnline, existingClients = [], existingProducts = []) {
   if (isOnline) {
-    const res = await fetch(`${API_BASE}/invoices/${invoice.id}`, {
+    const res = await fetch(`${activeApiBase}/invoices/${invoice.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(invoice),
@@ -155,7 +161,7 @@ export async function apiUpdateInvoice(invoice, isOnline, existingClients = [], 
 
     // Guardar cliente orgánicamente si es nuevo
     if (invoice.cliente?.nombre && !existingClients.some((c) => c.identificacion === invoice.cliente.identificacion)) {
-      fetch(`${API_BASE}/clients`, {
+      fetch(`${activeApiBase}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: `cli-${Date.now()}`, ...invoice.cliente }),
@@ -165,7 +171,7 @@ export async function apiUpdateInvoice(invoice, isOnline, existingClients = [], 
     // Guardar productos orgánicamente si son nuevos
     for (const item of invoice.items || []) {
       if (item.descripcion && !existingProducts.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
-        fetch(`${API_BASE}/products`, {
+        fetch(`${activeApiBase}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -189,7 +195,7 @@ export async function apiUpdateInvoice(invoice, isOnline, existingClients = [], 
 export async function apiUpdateEmisor(emisorData, isOnline) {
   if (isOnline) {
     try {
-      await fetch(`${API_BASE}/emisor`, {
+      await fetch(`${activeApiBase}/emisor`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emisorData),
@@ -205,7 +211,7 @@ export async function apiUpdateEmisor(emisorData, isOnline) {
  */
 export async function apiUpdateInvoiceStatus(id, newStatus, isOnline) {
   if (isOnline) {
-    const res = await fetch(`${API_BASE}/invoices/${id}`, {
+    const res = await fetch(`${activeApiBase}/invoices/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ estado: newStatus }),
@@ -223,7 +229,7 @@ export async function apiUpdateInvoiceStatus(id, newStatus, isOnline) {
  */
 export async function apiDeleteInvoice(id, isOnline) {
   if (isOnline) {
-    const res = await fetch(`${API_BASE}/invoices/${id}`, {
+    const res = await fetch(`${activeApiBase}/invoices/${id}`, {
       method: 'DELETE',
     });
 
@@ -232,4 +238,118 @@ export async function apiDeleteInvoice(id, isOnline) {
     }
   }
   return true;
+}
+
+/**
+ * Consulta una factura específica por su ID en el backend (GET /invoices/:id)
+ * Muestra el Response con status 200 en la consola del navegador
+ */
+export async function apiGetInvoiceById(id, isOnline = true) {
+  if (isOnline !== false) {
+    const candidateBases = [activeApiBase, 'http://localhost:3005', 'http://localhost:3001'];
+    for (let i = 0; i < candidateBases.length; i++) {
+      const base = candidateBases[i];
+      try {
+        const res = await fetch(`${base}/invoices/${encodeURIComponent(id)}`);
+        console.log(res); // Muestra Response con Status 200 en la consola del navegador
+        if (res.ok) {
+          activeApiBase = base;
+          return await res.json();
+        }
+      } catch {
+        // Intentar siguiente puerto si falla
+      }
+    }
+  }
+
+  // Búsqueda local por ID con forEach (CERO .filter())
+  let localInvoices;
+  try {
+    const saved = localStorage.getItem('facturacion_invoices');
+    localInvoices = saved ? JSON.parse(saved) : (defaultDb.invoices || []);
+  } catch {
+    localInvoices = [];
+  }
+
+  let found = null;
+  localInvoices.forEach((inv) => {
+    if (inv.id === id || inv.numeroFactura === id) {
+      found = inv;
+    }
+  });
+
+  return found;
+}
+
+/**
+ * Busca facturas en el backend consumiendo fetch y mostrando status 200 en consola.
+ * Soporta consulta directa por ID o filtrado dinámico.
+ */
+export async function apiSearchInvoices(searchTerm, isOnline = true) {
+  let fetchedData = null;
+  const cleanTerm = (searchTerm || '').trim();
+
+  if (isOnline !== false) {
+    const candidateBases = [activeApiBase, 'http://localhost:3005', 'http://localhost:3001'];
+    for (let i = 0; i < candidateBases.length; i++) {
+      const base = candidateBases[i];
+      try {
+        // Si el término coincide con un ID exacto (ej. FAC-001), consulta directa por ID al backend
+        if (cleanTerm) {
+          try {
+            const resById = await fetch(`${base}/invoices/${encodeURIComponent(cleanTerm)}`);
+            if (resById.ok) {
+              console.log(resById); // Muestra Response 200 en consola al consultar por ID
+              const item = await resById.json();
+              activeApiBase = base;
+              return [item];
+            }
+          } catch {
+            // Continuar a la consulta de lista
+          }
+        }
+
+        const res = await fetch(`${base}/invoices`);
+        console.log(res); // Muestra Response con Status 200 en la consola del navegador
+        if (res.ok) {
+          activeApiBase = base;
+          fetchedData = await res.json();
+          break;
+        }
+      } catch {
+        // Continuar al siguiente puerto si falla
+      }
+    }
+  }
+
+  // Si no se obtuvo del backend, usar respaldo local
+  if (!fetchedData) {
+    try {
+      const saved = localStorage.getItem('facturacion_invoices');
+      fetchedData = saved ? JSON.parse(saved) : (defaultDb.invoices || []);
+    } catch {
+      fetchedData = [];
+    }
+  }
+
+  if (!cleanTerm) {
+    return fetchedData;
+  }
+
+  // Filtrado con forEach estricto (CERO .filter())
+  const q = cleanTerm.toLowerCase();
+  const results = [];
+  fetchedData.forEach((inv) => {
+    const match =
+      (inv.id || '').toLowerCase().includes(q) ||
+      (inv.numeroFactura || '').toLowerCase().includes(q) ||
+      (inv.cliente?.nombre || '').toLowerCase().includes(q) ||
+      (inv.cliente?.identificacion || '').toLowerCase().includes(q) ||
+      (inv.fecha || '').includes(q);
+    if (match) {
+      results.push(inv);
+    }
+  });
+
+  return results;
 }

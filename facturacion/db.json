@@ -1,54 +1,513 @@
 {
   "emisor": {
-    "nombre": "",
-    "identificacion": "",
-    "email": "",
-    "direccion": ""
+    "nombre": "Nexura Soluciones Digitales S.A.",
+    "identificacion": "3-101-554433",
+    "email": "contacto@nexura.io",
+    "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
   },
   "clients": [
     {
       "id": "cli-1788876359325",
-      "nombre": "luis envio",
-      "identificacion": "3-101-776655",
-      "email": "danielramirez272006@gmail.com",
-      "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+      "nombre": "Carlos Alvarado Ramírez",
+      "identificacion": "1-1520-0341",
+      "email": "carlos.alvarado@gmail.com",
+      "direccion": "San Pedro, Montes de Oca, San José"
+    },
+    {
+      "id": "cli-1788876359326",
+      "nombre": "Tecnología Global de Costa Rica S.A.",
+      "identificacion": "3-101-778899",
+      "email": "facturacion@tecglobal.cr",
+      "direccion": "Parque Empresarial Forum 2, Santa Ana"
+    },
+    {
+      "id": "cli-1788876359327",
+      "nombre": "Dra. María Elena Fernández",
+      "identificacion": "2-0450-0891",
+      "email": "mfernandez@clinicamedica.cr",
+      "direccion": "Barrio Escalante, San José"
+    },
+    {
+      "id": "cli-1788876359328",
+      "nombre": "Corporación Logística del Valle",
+      "identificacion": "3-102-654321",
+      "email": "adquisiciones@logisticavalle.com",
+      "direccion": "Zona Franca Coyol, Alajuela"
+    },
+    {
+      "id": "cli-1788876359329",
+      "nombre": "Hospital Metropolitano y Salud Integral",
+      "identificacion": "3-101-998877",
+      "email": "compras@hospitalmetro.cr",
+      "direccion": "Paseo Colón, San José"
+    },
+    {
+      "id": "cli-1788876359330",
+      "nombre": "Constructora e Inmobiliaria Los Andes",
+      "identificacion": "3-101-443322",
+      "email": "administracion@losandescr.com",
+      "direccion": "Escazú Village, Torre Corporativa"
+    },
+    {
+      "id": "cli-1788876359331",
+      "nombre": "Supermercados La Gran Vía",
+      "identificacion": "3-102-112233",
+      "email": "contabilidad@lagranvia.cr",
+      "direccion": "Curridabat, San José"
+    },
+    {
+      "id": "cli-1788876359332",
+      "nombre": "Bufete Jurídico & Asociados Monge",
+      "identificacion": "3-101-883344",
+      "email": "info@bufetemonge.law",
+      "direccion": "Los Yoses, San Pedro"
+    },
+    {
+      "id": "cli-1788876359333",
+      "nombre": "Academia de Idiomas y Liderazgo",
+      "identificacion": "3-101-224466",
+      "email": "finanzas@academialider.edu",
+      "direccion": "Heredia Centro"
+    },
+    {
+      "id": "cli-1788876359334",
+      "nombre": "Distribuidora Gastronómica del Pacífico",
+      "identificacion": "3-102-771199",
+      "email": "pedidos@gastronomicapacifico.cr",
+      "direccion": "Puntarenas Puerto"
     }
   ],
   "products": [
     {
-      "id": "prod-1788876359326-948",
-      "descripcion": "ñlgklgkj",
-      "precio": 0.17
+      "id": "prod-101",
+      "descripcion": "Consultoría y Desarrollo de Software Web",
+      "precio": 850
+    },
+    {
+      "id": "prod-102",
+      "descripcion": "Mantenimiento y Soporte Técnico Cloud",
+      "precio": 320
+    },
+    {
+      "id": "prod-103",
+      "descripcion": "Licencia Anual Plataforma SaaS Nexura",
+      "precio": 1200
+    },
+    {
+      "id": "prod-104",
+      "descripcion": "Auditoría de Ciberseguridad e Infraestructura",
+      "precio": 650
+    },
+    {
+      "id": "prod-105",
+      "descripcion": "Diseño UI/UX de Experiencia de Usuario",
+      "precio": 450
+    },
+    {
+      "id": "prod-106",
+      "descripcion": "Integración de Pasarela de Pagos y Facturación",
+      "precio": 500
+    },
+    {
+      "id": "prod-107",
+      "descripcion": "Capacitación y Adopción Digital Empresarial",
+      "precio": 280
     }
   ],
   "invoices": [
     {
       "id": "FAC-001",
       "numeroFactura": "FAC-001",
-      "fecha": "2026-09-08",
-      "dueDate": "2026-10-30",
-      "moneda": "₡",
+      "fecha": "2026-09-01",
+      "dueDate": "2026-09-30",
+      "moneda": "$",
       "metodoPago": "Transferencia / SINPE",
-      "condicionVenta": "Contado",
+      "condicionVenta": "Crédito 30 días",
       "estado": "Emitida",
-      "claveNumerica": "506202609081405594.1503363287383625e+32",
+      "claveNumerica": "50601092600310155443300100001010000000011987654321",
       "emisor": {
-        "nombre": "lius s.a",
+        "nombre": "Nexura Soluciones Digitales S.A.",
         "identificacion": "3-101-554433",
-        "email": "danielramirez272006@gmail.com",
-        "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
       },
       "cliente": {
-        "nombre": "luis envio",
-        "identificacion": "3-101-776655",
-        "email": "danielramirez272006@gmail.com",
-        "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+        "nombre": "Carlos Alvarado Ramírez",
+        "identificacion": "1-1520-0341",
+        "email": "carlos.alvarado@gmail.com",
+        "direccion": "San Pedro, Montes de Oca, San José"
       },
       "items": [
         {
-          "descripcion": "ñlgklgkj",
+          "descripcion": "Consultoría y Desarrollo de Software Web",
+          "cantidad": 2,
+          "precio": 850,
+          "descuento": 5
+        },
+        {
+          "descripcion": "Mantenimiento y Soporte Técnico Cloud",
           "cantidad": 1,
-          "precio": 0.17
+          "precio": 320,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-002",
+      "numeroFactura": "FAC-002",
+      "fecha": "2026-09-03",
+      "dueDate": "2026-09-15",
+      "moneda": "$",
+      "metodoPago": "Tarjeta",
+      "condicionVenta": "Contado",
+      "estado": "Emitida",
+      "claveNumerica": "50603092600310155443300100001010000000021987654322",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Tecnología Global de Costa Rica S.A.",
+        "identificacion": "3-101-778899",
+        "email": "facturacion@tecglobal.cr",
+        "direccion": "Parque Empresarial Forum 2, Santa Ana"
+      },
+      "items": [
+        {
+          "descripcion": "Licencia Anual Plataforma SaaS Nexura",
+          "cantidad": 1,
+          "precio": 1200,
+          "descuento": 10
+        }
+      ]
+    },
+    {
+      "id": "FAC-003",
+      "numeroFactura": "FAC-003",
+      "fecha": "2026-08-15",
+      "dueDate": "2026-08-30",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 15 días",
+      "estado": "Emitida",
+      "claveNumerica": "50615082600310155443300100001010000000031987654323",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Dra. María Elena Fernández",
+        "identificacion": "2-0450-0891",
+        "email": "mfernandez@clinicamedica.cr",
+        "direccion": "Barrio Escalante, San José"
+      },
+      "items": [
+        {
+          "descripcion": "Auditoría de Ciberseguridad e Infraestructura",
+          "cantidad": 1,
+          "precio": 650,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-004",
+      "numeroFactura": "FAC-004",
+      "fecha": "2026-09-06",
+      "dueDate": "2026-09-10",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 30 días",
+      "estado": "Emitida",
+      "claveNumerica": "50606092600310155443300100001010000000041987654324",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Corporación Logística del Valle",
+        "identificacion": "3-102-654321",
+        "email": "adquisiciones@logisticavalle.com",
+        "direccion": "Zona Franca Coyol, Alajuela"
+      },
+      "items": [
+        {
+          "descripcion": "Consultoría y Desarrollo de Software Web",
+          "cantidad": 3,
+          "precio": 850,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-005",
+      "numeroFactura": "FAC-005",
+      "fecha": "2026-09-07",
+      "dueDate": "2026-10-07",
+      "moneda": "$",
+      "metodoPago": "Efectivo",
+      "condicionVenta": "Contado",
+      "estado": "Anulada",
+      "claveNumerica": "50607092600310155443300100001010000000051987654325",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Carlos Alvarado Ramírez",
+        "identificacion": "1-1520-0341",
+        "email": "carlos.alvarado@gmail.com",
+        "direccion": "San Pedro, Montes de Oca, San José"
+      },
+      "items": [
+        {
+          "descripcion": "Mantenimiento y Soporte Técnico Cloud",
+          "cantidad": 1,
+          "precio": 320,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-006",
+      "numeroFactura": "FAC-006",
+      "fecha": "2026-09-08",
+      "dueDate": "2026-09-22",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 15 días",
+      "estado": "Emitida",
+      "claveNumerica": "50608092600310155443300100001010000000061987654326",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Hospital Metropolitano y Salud Integral",
+        "identificacion": "3-101-998877",
+        "email": "compras@hospitalmetro.cr",
+        "direccion": "Paseo Colón, San José"
+      },
+      "items": [
+        {
+          "descripcion": "Integración de Pasarela de Pagos y Facturación",
+          "cantidad": 2,
+          "precio": 500,
+          "descuento": 0
+        },
+        {
+          "descripcion": "Capacitación y Adopción Digital Empresarial",
+          "cantidad": 3,
+          "precio": 280,
+          "descuento": 5
+        }
+      ]
+    },
+    {
+      "id": "FAC-007",
+      "numeroFactura": "FAC-007",
+      "fecha": "2026-08-20",
+      "dueDate": "2026-09-04",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 15 días",
+      "estado": "Emitida",
+      "claveNumerica": "50620082600310155443300100001010000000071987654327",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Constructora e Inmobiliaria Los Andes",
+        "identificacion": "3-101-443322",
+        "email": "administracion@losandescr.com",
+        "direccion": "Escazú Village, Torre Corporativa"
+      },
+      "items": [
+        {
+          "descripcion": "Diseño UI/UX de Experiencia de Usuario",
+          "cantidad": 2,
+          "precio": 450,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-008",
+      "numeroFactura": "FAC-008",
+      "fecha": "2026-09-02",
+      "dueDate": "2026-09-17",
+      "moneda": "$",
+      "metodoPago": "Tarjeta",
+      "condicionVenta": "Contado",
+      "estado": "Emitida",
+      "claveNumerica": "50602092600310155443300100001010000000081987654328",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Supermercados La Gran Vía",
+        "identificacion": "3-102-112233",
+        "email": "contabilidad@lagranvia.cr",
+        "direccion": "Curridabat, San José"
+      },
+      "items": [
+        {
+          "descripcion": "Licencia Anual Plataforma SaaS Nexura",
+          "cantidad": 2,
+          "precio": 1200,
+          "descuento": 15
+        }
+      ]
+    },
+    {
+      "id": "FAC-009",
+      "numeroFactura": "FAC-009",
+      "fecha": "2026-09-04",
+      "dueDate": "2026-10-04",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 30 días",
+      "estado": "Emitida",
+      "claveNumerica": "50604092600310155443300100001010000000091987654329",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Bufete Jurídico & Asociados Monge",
+        "identificacion": "3-101-883344",
+        "email": "info@bufetemonge.law",
+        "direccion": "Los Yoses, San Pedro"
+      },
+      "items": [
+        {
+          "descripcion": "Auditoría de Ciberseguridad e Infraestructura",
+          "cantidad": 1,
+          "precio": 650,
+          "descuento": 0
+        },
+        {
+          "descripcion": "Mantenimiento y Soporte Técnico Cloud",
+          "cantidad": 1,
+          "precio": 320,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-010",
+      "numeroFactura": "FAC-010",
+      "fecha": "2026-09-05",
+      "dueDate": "2026-09-20",
+      "moneda": "$",
+      "metodoPago": "Tarjeta",
+      "condicionVenta": "Contado",
+      "estado": "Pagada",
+      "claveNumerica": "50605092600310155443300100001010000000101987654330",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Academia de Idiomas y Liderazgo",
+        "identificacion": "3-101-224466",
+        "email": "finanzas@academialider.edu",
+        "direccion": "Heredia Centro"
+      },
+      "items": [
+        {
+          "descripcion": "Consultoría y Desarrollo de Software Web",
+          "cantidad": 1,
+          "precio": 850,
+          "descuento": 0
+        },
+        {
+          "descripcion": "Diseño UI/UX de Experiencia de Usuario",
+          "cantidad": 1,
+          "precio": 450,
+          "descuento": 10
+        }
+      ]
+    },
+    {
+      "id": "FAC-011",
+      "numeroFactura": "FAC-011",
+      "fecha": "2026-09-08",
+      "dueDate": "2026-10-08",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 30 días",
+      "estado": "Emitida",
+      "claveNumerica": "50608092600310155443300100001010000000111987654331",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Distribuidora Gastronómica del Pacífico",
+        "identificacion": "3-102-771199",
+        "email": "pedidos@gastronomicapacifico.cr",
+        "direccion": "Puntarenas Puerto"
+      },
+      "items": [
+        {
+          "descripcion": "Integración de Pasarela de Pagos y Facturación",
+          "cantidad": 1,
+          "precio": 500,
+          "descuento": 0
+        }
+      ]
+    },
+    {
+      "id": "FAC-012",
+      "numeroFactura": "FAC-012",
+      "fecha": "2026-08-10",
+      "dueDate": "2026-08-25",
+      "moneda": "$",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Crédito 15 días",
+      "estado": "Emitida",
+      "claveNumerica": "50610082600310155443300100001010000000121987654332",
+      "emisor": {
+        "nombre": "Nexura Soluciones Digitales S.A.",
+        "identificacion": "3-101-554433",
+        "email": "contacto@nexura.io",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José, Costa Rica"
+      },
+      "cliente": {
+        "nombre": "Constructora e Inmobiliaria Los Andes",
+        "identificacion": "3-101-443322",
+        "email": "administracion@losandescr.com",
+        "direccion": "Escazú Village, Torre Corporativa"
+      },
+      "items": [
+        {
+          "descripcion": "Auditoría de Ciberseguridad e Infraestructura",
+          "cantidad": 2,
+          "precio": 650,
+          "descuento": 10
         }
       ]
     }
