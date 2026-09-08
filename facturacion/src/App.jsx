@@ -6,6 +6,7 @@ import Invoice from './invoices/Invoice';
 import Dashboard from './dashboard/Dashboard';
 import Button from './components/Button';
 import {
+  apiGetInvoiceById,
   loadApplicationData,
   apiSaveInvoice,
   apiUpdateInvoice,
@@ -124,7 +125,19 @@ function App() {
     setCurrentView('form');
   };
 
-  const handleViewDetail = (invoice) => {
+  const handleViewDetail = async (invoice) => {
+    if (invoice?.id) {
+      try {
+        const fetched = await apiGetInvoiceById(invoice.id, isBackendConnected);
+        if (fetched) {
+          setSelectedInvoice(fetched);
+          setCurrentView('detail');
+          return;
+        }
+      } catch {
+        // Fallback
+      }
+    }
     setSelectedInvoice(invoice);
     setCurrentView('detail');
   };
