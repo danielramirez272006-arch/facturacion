@@ -3,20 +3,30 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import QRCode from 'qrcode';
 
-export default function Invoice({ invoice, onBack, onUpdateStatus }) {
+export default function Invoice({
+  invoice,
+  onBack,
+  onEdit,
+  onDuplicate,
+  onUpdateStatus,
+  onNotify,
+}) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   const items = invoice?.items || [];
-  const subtotal = items.reduce(
-    (acc, item) => acc + (Number(item.cantidad) || 0) * (Number(item.precio) || 0),
-    0
-  );
+
+  // REGLA ESTRICTA: Cálculos al vuelo en tiempo de render
+  const subtotal = items.reduce((acc, item) => {
+    const base = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+    const desc = Math.min(100, Math.max(0, Number(item.descuento) || 0));
+    return acc + base * (1 - desc / 100);
+  }, 0);
   const iva = subtotal * 0.13;
   const total = subtotal + iva;
   const moneda = invoice?.moneda || '$';
   const estado = invoice?.estado || 'Emitida';
 
-  // Texto real codificado en el código QR para escaneo con cualquier teléfono o app QR
+  // Texto real codificado en el código QR para escaneo directo con cámara
   const qrText = invoice
     ? [
         `=== FACTURA ELECTRÓNICA ===`,
@@ -79,6 +89,44 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
     window.print();
   };
 
+  // Copiar resumen formateado para WhatsApp / Correo
+  const handleCopyWhatsApp = () => {
+    const lines = [
+      `*Factura Comercial: ${invoice.numeroFactura}*`,
+      `*Emisor:* ${invoice.emisor?.nombre || ''}`,
+      `*Cliente:* ${invoice.cliente?.nombre || ''}`,
+      `*Total a pagar:* ${moneda}${total.toFixed(2)} (IVA 13% inc.)`,
+      `*Emisión:* ${invoice.fecha}${invoice.dueDate ? ` | *Vence:* ${invoice.dueDate}` : ''}`,
+      `*Medio de Pago:* ${invoice.metodoPago || 'Transferencia / SINPE'}`,
+      `*Estado:* ${estado}`,
+      invoice.claveNumerica ? `*Clave Hacienda:* ${invoice.claveNumerica}` : '',
+      `\n¡Gracias por su preferencia!`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    navigator.clipboard.writeText(lines).then(() => {
+      if (onNotify) {
+        onNotify('Resumen copiado al portapapeles', 'success');
+      }
+    });
+  };
+
+  // Descargar factura en JSON estructurado
+  const handleDownloadJSON = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(invoice, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `factura_${invoice.numeroFactura || invoice.id}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+
+    if (onNotify) {
+      onNotify('Archivo JSON descargado correctamente', 'info');
+    }
+  };
+
   const getStatusBadgeStyle = (currentEstado) => {
     switch (currentEstado) {
       case 'Pagada':
@@ -94,16 +142,14 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
 
   return (
     <>
-      {/* Estilos CSS con @media print para impresión y guardado como PDF limpio */}
+      {/* Estilos CSS con @media print para salida en PDF A4 limpia */}
       <style>{`
         @media print {
-          /* Oculta botones de acción, navegación y cualquier elemento ajeno al documento */
           .no-print,
           .no-print * {
             display: none !important;
           }
 
-          /* Resetea la página completa para un documento limpio y profesional */
           html, body {
             margin: 0 !important;
             padding: 0 !important;
@@ -150,7 +196,7 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
       <Card
         className="invoice-card"
         style={{
-          maxWidth: '880px',
+          maxWidth: '920px',
           margin: '0 auto',
           textAlign: 'left',
           backgroundColor: '#ffffff',
@@ -176,17 +222,39 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
             <Button variant="secondary" onClick={onBack}>
               ← Volver al Listado
             </Button>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {onEdit && (
+              <Button variant="outline" onClick={() => onEdit(invoice)}>
+                Editar
+              </Button>
+            )}
+
+            {onDuplicate && (
+              <Button variant="outline" onClick={() => onDuplicate(invoice)}>
+                Duplicar
+              </Button>
+            )}
+
+            <Button variant="secondary" onClick={handleCopyWhatsApp} title="Copiar texto listo para enviar por mensajería">
+              Copiar WhatsApp
+            </Button>
+
+            <Button variant="secondary" onClick={handleDownloadJSON} title="Descargar datos en JSON">
+              Exportar JSON
+            </Button>
+
             {onUpdateStatus && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Marcar como:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Estado:</span>
                 <select
                   value={estado}
                   onChange={(e) => onUpdateStatus(invoice.id, e.target.value)}
                   style={{
-                    padding: '0.5rem 0.75rem',
+                    padding: '0.5rem 0.65rem',
                     borderRadius: '6px',
                     border: '1px solid #cbd5e1',
                     fontSize: '0.85rem',
@@ -199,8 +267,9 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
                 </select>
               </div>
             )}
+
             <Button variant="primary" onClick={handlePrint}>
-              🖨️ Imprimir / Guardar como PDF
+              Imprimir PDF
             </Button>
           </div>
         </div>
@@ -275,13 +344,18 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
             <p style={{ margin: '0 0 0.25rem', fontSize: '0.875rem', color: '#475569' }}>
               <strong>Fecha:</strong> {invoice.fecha}
             </p>
+            {invoice.dueDate && (
+              <p style={{ margin: '0 0 0.25rem', fontSize: '0.875rem', color: '#64748b' }}>
+                <strong>Vencimiento:</strong> {invoice.dueDate}
+              </p>
+            )}
             <p style={{ margin: 0, fontSize: '0.825rem', color: '#64748b' }}>
               <strong>Moneda:</strong> {moneda === '₡' ? 'CRC (₡)' : moneda === '€' ? 'EUR (€)' : 'USD ($)'}
             </p>
           </div>
         </div>
 
-        {/* Clave Numérica Fiscal Oficial de Comprobante Electrónico */}
+        {/* Clave Numérica Fiscal de Comprobante */}
         {invoice.claveNumerica && (
           <div
             style={{
@@ -345,16 +419,20 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #cbd5e1', color: '#334155', fontSize: '0.85rem' }}>
-                <th style={{ padding: '0.75rem 0.5rem', width: '8%', textAlign: 'center' }}>#</th>
-                <th style={{ padding: '0.75rem 0.5rem', width: '50%' }}>Descripción del Bien / Servicio</th>
-                <th style={{ padding: '0.75rem 0.5rem', width: '12%', textAlign: 'center' }}>Cant.</th>
-                <th style={{ padding: '0.75rem 0.5rem', width: '15%', textAlign: 'right' }}>Precio Unit.</th>
-                <th style={{ padding: '0.75rem 0.5rem', width: '15%', textAlign: 'right' }}>Importe</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '6%', textAlign: 'center' }}>#</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '46%' }}>Descripción del Bien / Servicio</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '10%', textAlign: 'center' }}>Cant.</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '14%', textAlign: 'right' }}>Precio Unit.</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '10%', textAlign: 'center' }}>Desc %</th>
+                <th style={{ padding: '0.75rem 0.5rem', width: '14%', textAlign: 'right' }}>Importe</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item, index) => {
-                const itemImporte = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+                const base = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+                const desc = Math.min(100, Math.max(0, Number(item.descuento) || 0));
+                const itemImporte = base * (1 - desc / 100);
+
                 return (
                   <tr key={index} style={{ borderBottom: '1px solid #e2e8f0', fontSize: '0.9rem' }}>
                     <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center', color: '#64748b' }}>
@@ -368,6 +446,9 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
                     </td>
                     <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#475569' }}>
                       {moneda}{Number(item.precio).toFixed(2)}
+                    </td>
+                    <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center', color: '#64748b' }}>
+                      {desc > 0 ? `${desc}%` : '-'}
                     </td>
                     <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: '600', color: '#1e293b' }}>
                       {moneda}{itemImporte.toFixed(2)}
@@ -390,7 +471,7 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
             marginTop: '1.5rem',
           }}
         >
-          {/* Código QR Real Escaneable con Teléfono Móvil */}
+          {/* Código QR Real */}
           <div
             style={{
               display: 'flex',
@@ -473,7 +554,7 @@ export default function Invoice({ invoice, onBack, onUpdateStatus }) {
           </div>
         </div>
 
-        {/* Pie de página de la Factura */}
+        {/* Pie de página */}
         <div
           style={{
             marginTop: '3.5rem',

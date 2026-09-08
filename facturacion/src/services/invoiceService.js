@@ -137,6 +137,53 @@ export async function apiSaveInvoice(invoice, isOnline, existingClients = [], ex
 }
 
 /**
+ * Actualiza una factura existente completa en el backend o modo local
+ */
+export async function apiUpdateInvoice(invoice, isOnline, existingClients = [], existingProducts = []) {
+  if (isOnline) {
+    const res = await fetch(`${API_BASE}/invoices/${invoice.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(invoice),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al actualizar la factura en el servidor (Código: ${res.status})`);
+    }
+
+    const updatedData = await res.json();
+
+    // Guardar cliente orgánicamente si es nuevo
+    if (invoice.cliente?.nombre && !existingClients.some((c) => c.identificacion === invoice.cliente.identificacion)) {
+      fetch(`${API_BASE}/clients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: `cli-${Date.now()}`, ...invoice.cliente }),
+      }).catch(() => {});
+    }
+
+    // Guardar productos orgánicamente si son nuevos
+    for (const item of invoice.items || []) {
+      if (item.descripcion && !existingProducts.some((p) => p.descripcion.toLowerCase() === item.descripcion.toLowerCase())) {
+        fetch(`${API_BASE}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `prod-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            descripcion: item.descripcion,
+            precio: item.precio,
+          }),
+        }).catch(() => {});
+      }
+    }
+
+    return updatedData;
+  }
+
+  return invoice;
+}
+
+/**
  * Actualiza el emisor predeterminado en db.json si el usuario lo marca
  */
 export async function apiUpdateEmisor(emisorData, isOnline) {
