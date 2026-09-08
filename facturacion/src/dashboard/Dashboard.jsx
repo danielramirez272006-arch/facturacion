@@ -27,7 +27,11 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
   // Cálculo dinámico de total con IVA 13% por factura
   const getInvoiceTotal = (inv) => {
     const subtotal = (inv.items || []).reduce(
-      (acc, item) => acc + (Number(item.cantidad) || 0) * (Number(item.precio) || 0),
+      (acc, item) => {
+        const base = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+        const desc = Math.min(100, Math.max(0, Number(item.descuento) || 0));
+        return acc + base * (1 - desc / 100);
+      },
       0
     );
     return subtotal * 1.13;
@@ -250,7 +254,7 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.25rem' }}>
         <div>
           <h2 style={{ margin: 0, color: '#0f172a', fontSize: '1.75rem', fontWeight: '800' }}>
-            📊 Panel Analítico & Dashboard Administrativo
+            Panel Analítico y Administrativo
           </h2>
           <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.95rem' }}>
             Métricas ejecutivas, salud de cartera, proyecciones matemáticas y detección de anomalías
@@ -259,14 +263,14 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
 
         {/* Botón de Exportación */}
         <Button variant="outline" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          📥 Exportar CSV
+          Exportar CSV
         </Button>
       </div>
 
       {/* Barra de Filtros: Período y Moneda */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#ffffff', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155' }}>⏱️ Período:</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155' }}>Período:</span>
           <div style={{ display: 'inline-flex', borderRadius: '6px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
             <button
               type="button"
@@ -341,7 +345,7 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155' }}>💱 Divisa:</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155' }}>Divisa:</span>
           <select
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value)}
@@ -431,7 +435,7 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
         {/* Top 3 Clientes */}
         <Card>
           <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            🏆 Top 3 Clientes por Volumen
+            Top 3 Clientes por Volumen
           </h3>
           {analytics.topClientes.length === 0 ? (
             <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No hay registros en el período seleccionado.</p>
@@ -482,7 +486,7 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
         <Card style={{ borderLeft: analytics.outlierInvoices.length > 0 ? '5px solid #ef4444' : '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ⚡ Detección de Facturas Atípicas
+              Detección de Facturas Atípicas
             </h3>
             <span
               style={{
@@ -534,7 +538,7 @@ export default function Dashboard({ invoices = [], onViewDetail }) {
                       style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', borderColor: '#f43f5e', color: '#e11d48', backgroundColor: '#ffffff' }}
                       title="Ver factura completa"
                     >
-                      Ver Comprobante ➔
+                      Ver Comprobante
                     </Button>
                   )}
                 </div>

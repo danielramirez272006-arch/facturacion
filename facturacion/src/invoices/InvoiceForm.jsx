@@ -10,9 +10,16 @@ export default function InvoiceForm({
   clients = [],
   products = [],
   initialEmisor = {},
+  invoiceToEdit = null,
+  isCloning = false,
 }) {
-  // Cargar emisor predeterminado guardado por el usuario
+  const isEditing = Boolean(invoiceToEdit) && !isCloning;
+
+  // Cargar emisor predeterminado guardado por el usuario o de la factura en edición
   const savedEmisor = (() => {
+    if (invoiceToEdit?.emisor) {
+      return invoiceToEdit.emisor;
+    }
     try {
       const saved = localStorage.getItem('facturacion_default_emisor');
       return saved ? JSON.parse(saved) : initialEmisor;
@@ -21,38 +28,59 @@ export default function InvoiceForm({
     }
   })();
 
-  // Estado para datos del emisor (inicia vacío o con lo que el usuario haya guardado previamente)
+  // Estado para datos del emisor
   const [emisorNombre, setEmisorNombre] = useState(savedEmisor?.nombre || initialEmisor?.nombre || '');
   const [emisorIdentificacion, setEmisorIdentificacion] = useState(savedEmisor?.identificacion || initialEmisor?.identificacion || '');
   const [emisorEmail, setEmisorEmail] = useState(savedEmisor?.email || initialEmisor?.email || '');
   const [emisorDireccion, setEmisorDireccion] = useState(savedEmisor?.direccion || initialEmisor?.direccion || '');
   const [guardarEmisorDefault, setGuardarEmisorDefault] = useState(false);
 
-  // Estado para datos del cliente (inicia completamente en blanco)
-  const [clienteNombre, setClienteNombre] = useState('');
-  const [clienteIdentificacion, setClienteIdentificacion] = useState('');
-  const [clienteEmail, setClienteEmail] = useState('');
-  const [clienteDireccion, setClienteDireccion] = useState('');
+  // Estado para datos del cliente
+  const [clienteNombre, setClienteNombre] = useState(invoiceToEdit?.cliente?.nombre || '');
+  const [clienteIdentificacion, setClienteIdentificacion] = useState(invoiceToEdit?.cliente?.identificacion || '');
+  const [clienteEmail, setClienteEmail] = useState(invoiceToEdit?.cliente?.email || '');
+  const [clienteDireccion, setClienteDireccion] = useState(invoiceToEdit?.cliente?.direccion || '');
 
   // Estado para información de factura
-  const [numeroFactura, setNumeroFactura] = useState(suggestedInvoiceNumber);
-  const [fecha, setFecha] = useState(() => new Date().toISOString().split('T')[0]);
+  const [numeroFactura, setNumeroFactura] = useState(
+    isEditing ? invoiceToEdit.numeroFactura : suggestedInvoiceNumber
+  );
+  const [fecha, setFecha] = useState(() => {
+    if (isEditing && invoiceToEdit.fecha) return invoiceToEdit.fecha;
+    return new Date().toISOString().split('T')[0];
+  });
   const [dueDate, setDueDate] = useState(() => {
+    if (isEditing && invoiceToEdit.dueDate) return invoiceToEdit.dueDate;
     const d = new Date();
     d.setDate(d.getDate() + 30);
     return d.toISOString().split('T')[0];
   });
-  const [moneda, setMoneda] = useState('$');
-  const [metodoPago, setMetodoPago] = useState('Transferencia / SINPE');
-  const [condicionVenta, setCondicionVenta] = useState('Contado');
+  const [moneda, setMoneda] = useState(invoiceToEdit?.moneda || '$');
+  const [metodoPago, setMetodoPago] = useState(invoiceToEdit?.metodoPago || 'Transferencia / SINPE');
+  const [condicionVenta, setCondicionVenta] = useState(invoiceToEdit?.condicionVenta || 'Contado');
 
-  // Lista dinámica de ítems manejada con useState (inicia con fila en blanco)
-  const [items, setItems] = useState([
-    { descripcion: '', cantidad: 1, precio: '' },
-  ]);
+  // Lista dinámica de ítems con soporte opcional de descuento (%)
+  const [items, setItems] = useState(() => {
+    if (invoiceToEdit?.items && invoiceToEdit.items.length > 0) {
+      return invoiceToEdit.items.map((it) => ({
+        descripcion: it.descripcion || '',
+        cantidad: it.cantidad ?? 1,
+        precio: String(it.precio ?? ''),
+        descuento: it.descuento ? String(it.descuento) : '0',
+      }));
+    }
+    return [{ descripcion: '', cantidad: 1, precio: '', descuento: '0' }];
+  });
 
   // Estado para mensajes de validación
   const [errors, setErrors] = useState({});
+
+  // Limpiador en vivo de errores
+  const clearError = (field) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+  };
 
   // Manejador para autocompletar cliente desde db.json si existen clientes guardados
   const handleSelectClient = (clientId) => {
@@ -83,6 +111,7 @@ export default function InvoiceForm({
         precio: String(found.precio),
       };
       setItems(newItems);
+      clearError('items');
     }
   };
 
@@ -91,29 +120,32 @@ export default function InvoiceForm({
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
+    clearError('items');
   };
 
   const handleAddItem = () => {
-    setItems([...items, { descripcion: '', cantidad: 1, precio: '' }]);
+    setItems([...items, { descripcion: '', cantidad: 1, precio: '', descuento: '0' }]);
+    clearError('items');
   };
 
   const handleDeleteItem = (index) => {
     if (items.length > 1) {
       setItems(items.filter((_, i) => i !== index));
     } else {
-      setItems([{ descripcion: '', cantidad: 1, precio: '' }]);
+      setItems([{ descripcion: '', cantidad: 1, precio: '', descuento: '0' }]);
     }
   };
 
   // REGLA ESTRICTA: Los cálculos NO se guardan en el estado, se calculan dinámicamente en el render
-  const subtotal = items.reduce(
-    (acc, item) => acc + (Number(item.cantidad) || 0) * (Number(item.precio) || 0),
-    0
-  );
+  const subtotal = items.reduce((acc, item) => {
+    const base = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+    const desc = Math.min(100, Math.max(0, Number(item.descuento) || 0));
+    return acc + base * (1 - desc / 100);
+  }, 0);
   const iva = subtotal * 0.13;
   const total = subtotal + iva;
 
-  // Validación para evitar guardar campos vacíos
+  // Validación
   const validateForm = () => {
     const newErrors = {};
 
@@ -185,20 +217,23 @@ export default function InvoiceForm({
     }
 
     // Clave numérica oficial de 50 dígitos para simular comprobante de Hacienda
-    const claveNumerica = `506${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}${Math.floor(
-      100000000000000000000000000000000 + Math.random() * 900000000000000000000000000000000
-    ).toString().slice(0, 33)}`;
+    const claveNumerica =
+      isEditing && invoiceToEdit?.claveNumerica
+        ? invoiceToEdit.claveNumerica
+        : `506${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}${Math.floor(
+            100000000000000000000000000000000 + Math.random() * 900000000000000000000000000000000
+          ).toString().slice(0, 33)}`;
 
     // Se construye el objeto sin guardar cálculos en el estado
-    const newInvoice = {
-      id: numeroFactura.trim(),
+    const invoicePayload = {
+      id: isEditing ? invoiceToEdit.id : numeroFactura.trim(),
       numeroFactura: numeroFactura.trim(),
       fecha,
       dueDate,
       moneda,
       metodoPago,
       condicionVenta,
-      estado: 'Emitida',
+      estado: isEditing ? invoiceToEdit.estado || 'Emitida' : 'Emitida',
       claveNumerica,
       emisor: {
         nombre: emisorNombre.trim(),
@@ -216,10 +251,11 @@ export default function InvoiceForm({
         descripcion: item.descripcion.trim(),
         cantidad: Number(item.cantidad),
         precio: Number(item.precio),
+        descuento: Number(item.descuento) || 0,
       })),
     };
 
-    onSave(newInvoice, guardarEmisorDefault);
+    onSave(invoicePayload, guardarEmisorDefault, isEditing);
   };
 
   return (
@@ -227,9 +263,17 @@ export default function InvoiceForm({
       {/* Cabecera del formulario */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.5rem' }}>Nueva Factura Comercial</h2>
+          <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.5rem', fontWeight: '800' }}>
+            {isEditing
+              ? `Modificar Factura (${invoiceToEdit.numeroFactura})`
+              : isCloning
+              ? 'Duplicar Factura Comercial'
+              : 'Nueva Factura Comercial'}
+          </h2>
           <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-            Complete los datos de emisión para generar el documento tributario
+            {isEditing
+              ? 'Actualice las condiciones, cliente o líneas de cobro del documento existente'
+              : 'Complete los datos de emisión para generar el documento tributario'}
           </p>
         </div>
         <Button type="button" variant="secondary" onClick={handleCancelClick}>
@@ -245,7 +289,10 @@ export default function InvoiceForm({
             <Input
               label="Número de Factura"
               value={numeroFactura}
-              onChange={(e) => setNumeroFactura(e.target.value)}
+              onChange={(e) => {
+                setNumeroFactura(e.target.value);
+                clearError('numeroFactura');
+              }}
               placeholder="Ej. FAC-001"
               error={errors.numeroFactura}
               required
@@ -254,7 +301,10 @@ export default function InvoiceForm({
               label="Fecha de Emisión"
               type="date"
               value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
+              onChange={(e) => {
+                setFecha(e.target.value);
+                clearError('fecha');
+              }}
               error={errors.fecha}
               required
             />
@@ -314,7 +364,10 @@ export default function InvoiceForm({
               <Input
                 label="Nombre / Razón Social"
                 value={emisorNombre}
-                onChange={(e) => setEmisorNombre(e.target.value)}
+                onChange={(e) => {
+                  setEmisorNombre(e.target.value);
+                  clearError('emisorNombre');
+                }}
                 placeholder="Nombre de la empresa"
                 error={errors.emisorNombre}
                 required
@@ -322,7 +375,10 @@ export default function InvoiceForm({
               <Input
                 label="Identificación / Cédula Jurídica / RUT"
                 value={emisorIdentificacion}
-                onChange={(e) => setEmisorIdentificacion(e.target.value)}
+                onChange={(e) => {
+                  setEmisorIdentificacion(e.target.value);
+                  clearError('emisorIdentificacion');
+                }}
                 placeholder="Ej. 3-101-123456"
                 error={errors.emisorIdentificacion}
                 required
@@ -331,7 +387,10 @@ export default function InvoiceForm({
                 label="Correo Electrónico"
                 type="email"
                 value={emisorEmail}
-                onChange={(e) => setEmisorEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmisorEmail(e.target.value);
+                  clearError('emisorEmail');
+                }}
                 placeholder="facturas@empresa.com"
                 error={errors.emisorEmail}
                 required
@@ -339,7 +398,10 @@ export default function InvoiceForm({
               <Input
                 label="Dirección Física"
                 value={emisorDireccion}
-                onChange={(e) => setEmisorDireccion(e.target.value)}
+                onChange={(e) => {
+                  setEmisorDireccion(e.target.value);
+                  clearError('emisorDireccion');
+                }}
                 placeholder="Provincia, Cantón, Distrito"
                 error={errors.emisorDireccion}
                 required
@@ -361,11 +423,11 @@ export default function InvoiceForm({
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#334155' }}>Datos del Cliente</h3>
             </div>
 
-            {/* Selector de Cliente desde db.json solo si existen clientes guardados previamente */}
+            {/* Selector de Cliente desde db.json si existen */}
             {clients.length > 0 && (
               <div style={{ marginBottom: '1rem', background: '#f1f5f9', padding: '0.75rem', borderRadius: '6px' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#4338ca', marginBottom: '0.25rem' }}>
-                  👥 Seleccionar de Clientes Guardados:
+                  Seleccionar de Clientes Guardados:
                 </label>
                 <select
                   defaultValue=""
@@ -396,7 +458,10 @@ export default function InvoiceForm({
               <Input
                 label="Nombre / Razón Social"
                 value={clienteNombre}
-                onChange={(e) => setClienteNombre(e.target.value)}
+                onChange={(e) => {
+                  setClienteNombre(e.target.value);
+                  clearError('clienteNombre');
+                }}
                 placeholder="Nombre o empresa cliente"
                 error={errors.clienteNombre}
                 required
@@ -404,7 +469,10 @@ export default function InvoiceForm({
               <Input
                 label="Identificación / Cédula / RUT"
                 value={clienteIdentificacion}
-                onChange={(e) => setClienteIdentificacion(e.target.value)}
+                onChange={(e) => {
+                  setClienteIdentificacion(e.target.value);
+                  clearError('clienteIdentificacion');
+                }}
                 placeholder="Ej. 1-1234-0567"
                 error={errors.clienteIdentificacion}
                 required
@@ -413,7 +481,10 @@ export default function InvoiceForm({
                 label="Correo Electrónico"
                 type="email"
                 value={clienteEmail}
-                onChange={(e) => setClienteEmail(e.target.value)}
+                onChange={(e) => {
+                  setClienteEmail(e.target.value);
+                  clearError('clienteEmail');
+                }}
                 placeholder="contacto@cliente.com"
                 error={errors.clienteEmail}
                 required
@@ -421,7 +492,10 @@ export default function InvoiceForm({
               <Input
                 label="Dirección Física"
                 value={clienteDireccion}
-                onChange={(e) => setClienteDireccion(e.target.value)}
+                onChange={(e) => {
+                  setClienteDireccion(e.target.value);
+                  clearError('clienteDireccion');
+                }}
                 placeholder="Ubicación o domicilio legal"
                 error={errors.clienteDireccion}
                 required
@@ -436,7 +510,7 @@ export default function InvoiceForm({
             <div>
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#334155' }}>Líneas de Facturación</h3>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-                Ingrese los productos o servicios brindados
+                Ingrese los productos o servicios brindados con opción de descuento por línea
               </p>
             </div>
             <Button type="button" variant="outline" onClick={handleAddItem}>
@@ -454,16 +528,19 @@ export default function InvoiceForm({
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', fontSize: '0.85rem' }}>
-                  <th style={{ padding: '0.5rem 0.5rem', width: '48%' }}>Descripción</th>
-                  <th style={{ padding: '0.5rem 0.5rem', width: '12%' }}>Cantidad</th>
+                  <th style={{ padding: '0.5rem 0.5rem', width: '40%' }}>Descripción</th>
+                  <th style={{ padding: '0.5rem 0.5rem', width: '10%' }}>Cant.</th>
                   <th style={{ padding: '0.5rem 0.5rem', width: '16%' }}>Precio Unit. ({moneda})</th>
+                  <th style={{ padding: '0.5rem 0.5rem', width: '12%' }}>Desc (%)</th>
                   <th style={{ padding: '0.5rem 0.5rem', width: '14%', textAlign: 'right' }}>Importe ({moneda})</th>
-                  <th style={{ padding: '0.5rem 0.5rem', width: '10%', textAlign: 'center' }}>Acción</th>
+                  <th style={{ padding: '0.5rem 0.5rem', width: '8%', textAlign: 'center' }}>Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => {
-                  const lineTotal = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+                  const base = (Number(item.cantidad) || 0) * (Number(item.precio) || 0);
+                  const desc = Math.min(100, Math.max(0, Number(item.descuento) || 0));
+                  const lineTotal = base * (1 - desc / 100);
 
                   return (
                     <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -484,7 +561,7 @@ export default function InvoiceForm({
                                 backgroundColor: '#f5f3ff',
                               }}
                             >
-                              <option value="" disabled>📦 Elegir del catálogo guardado...</option>
+                              <option value="" disabled>Seleccionar del catálogo guardado...</option>
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                   {p.descripcion} — ${p.precio.toFixed(2)}
@@ -519,6 +596,17 @@ export default function InvoiceForm({
                           onChange={(e) => handleItemChange(index, 'precio', e.target.value)}
                           placeholder="0.00"
                           required
+                        />
+                      </td>
+                      <td style={{ padding: '0.5rem', verticalAlign: 'middle' }}>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={item.descuento || '0'}
+                          onChange={(e) => handleItemChange(index, 'descuento', e.target.value)}
+                          placeholder="0"
                         />
                       </td>
                       <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#1e293b', verticalAlign: 'middle' }}>
@@ -567,7 +655,7 @@ export default function InvoiceForm({
             Cancelar
           </Button>
           <Button type="submit" variant="primary">
-            💾 Guardar y Emitir Factura
+            {isEditing ? 'Guardar Cambios' : isCloning ? 'Emitir Factura Duplicada' : 'Guardar y Emitir Factura'}
           </Button>
         </div>
       </form>

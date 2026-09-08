@@ -5,7 +5,53 @@
     "email": "",
     "direccion": ""
   },
-  "clients": [],
-  "products": [],
-  "invoices": []
+  "clients": [
+    {
+      "id": "cli-1788876359325",
+      "nombre": "luis envio",
+      "identificacion": "3-101-776655",
+      "email": "danielramirez272006@gmail.com",
+      "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1788876359326-948",
+      "descripcion": "ñlgklgkj",
+      "precio": 0.17
+    }
+  ],
+  "invoices": [
+    {
+      "id": "FAC-001",
+      "numeroFactura": "FAC-001",
+      "fecha": "2026-09-08",
+      "dueDate": "2026-10-30",
+      "moneda": "₡",
+      "metodoPago": "Transferencia / SINPE",
+      "condicionVenta": "Contado",
+      "estado": "Emitida",
+      "claveNumerica": "506202609081405594.1503363287383625e+32",
+      "emisor": {
+        "nombre": "lius s.a",
+        "identificacion": "3-101-554433",
+        "email": "danielramirez272006@gmail.com",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+      },
+      "cliente": {
+        "nombre": "luis envio",
+        "identificacion": "3-101-776655",
+        "email": "danielramirez272006@gmail.com",
+        "direccion": "Oficentro Terra Campus, Edif. 2, San José"
+      },
+      "items": [
+        {
+          "descripcion": "ñlgklgkj",
+          "cantidad": 1,
+          "precio": 0.17
+        }
+      ]
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
